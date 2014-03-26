@@ -1,0 +1,19 @@
+p
+  = link_to "new product", new_product_url
+
+table.table.table-striped.table-bordered
+  thead
+    tr
+      th Name
+      th Weight
+      th Calories
+      th
+  tbody
+    - @products.each do |product|
+      tr
+        td = link_to product.name, product_url(product)
+        td = product.weight
+        td = product.calories
+        td
+          => link_to "edit", edit_product_url(product)
+          =  link_to "delete", product_url(product), method: :delete, confirm: "Are you sure?"

@@ -1,0 +1,80 @@
+require 'bcrypt'
+
+class User
+  include Mongoid::Document
+  include Mongoid::Timestamps
+
+  has_and_belongs_to_many :products
+
+  PASSWORD_RESET_EXPIRES = 1.day
+
+  attr_accessor :password, :password_confirmation
+
+  before_save :set_random_password, :encrypt_password
+
+  field :email
+  field :salt
+  field :fish
+
+  field :reset_code
+  field :reset_expires_at, type: Time
+
+  validates :email, presence: true, uniqueness: { case_sensitive: false }
+  validates :password, confirmation: true
+
+  def self.find_by_code(code)
+    if user = User.find_by(
+        :reset_code => code,
+        :reset_expires_at.gte => Time.now.gmtime
+      )
+      user.set_reset_expiration
+    end
+    user
+  end
+
+  def self.authenticate(email, password)
+    user = User.find_by email: email
+    user if user and user.authenticate(password)
+  end
+
+  def authenticate(password)
+    self.fish == BCrypt::Engine.hash_secret(password, self.salt)
+  end
+
+  def set_reset_code
+    self.reset_code = SecureRandom.urlsafe_base64
+    set_reset_expiration
+  end
+
+  def set_reset_expiration
+    self.reset_expires_at = PASSWORD_RESET_EXPIRES.from_now
+    self.save
+  end
+
+  def reset_password(user_params)
+    if user_params[:password].blank?
+      self.errors.add :password, "can't be blank"
+      return false
+    else
+      if self.update_attributes( user_params )
+        self.update_attributes({ reset_code: nil, reset_expires_at: nil })
+      end
+    end
+  end
+
+  protected
+
+  def set_salt
+    self.salt = BCrypt::Engine.generate_salt
+  end
+
+  def encrypt_password
+    self.fish = BCrypt::Engine.hash_secret(password, set_salt) if password.present?
+  end
+
+  def set_random_password
+    if password.blank? and self.fish.blank?
+      self.fish = BCrypt::Engine.hash_secret(SecureRandom.base64(32), set_salt)
+    end
+  end
+end

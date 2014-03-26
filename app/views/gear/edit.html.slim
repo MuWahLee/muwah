@@ -1,0 +1,17 @@
+= form_for current_user, url: gear_form_url, method: :patch do |f|
+  table.table.table-striped.table-bordered
+    thead
+      tr
+        th Include?
+        th Product
+        th Weight
+        th Calories
+    tbody
+      = f.collection_check_boxes :product_ids, @products, :id, :name do |b|
+        - product = b.instance_variable_get( :@object )
+        tr
+          td = b.check_box
+          td = product.name
+          td = product.weight
+          td = product.calories
+  = f.submit class: "btn btn-warning"

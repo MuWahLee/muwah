@@ -1,0 +1,16 @@
+p
+  = link_to "all products", products_url
+
+h1 = @product.name
+
+ul
+  li
+    => @product.weight
+    ' grams
+  li
+    => @product.calories
+    ' calories
+  li
+    = link_to "edit", edit_product_url(@product)
+  li
+    =  link_to "delete", product_url(@product), method: :delete, confirm: "Are you sure?"

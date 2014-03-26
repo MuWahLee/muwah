@@ -1,0 +1,11 @@
+p
+  => link_to "all products", products_url
+  ' |
+  => link_to "new product", new_product_url
+  ' |
+  => link_to "show", product_url(@product)
+  ' |
+  =  link_to "delete", product_url(@product), method: :delete, confirm: "Are you sure?"
+
+
+== render partial: 'form'
